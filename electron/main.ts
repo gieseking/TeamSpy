@@ -67,14 +67,10 @@ async function createWindow() {
 app.whenReady().then(async () => {
   app.setName('TeamSpy')
   authManager = new AuthManager()
-  await authManager.initialize()
 
   ipcMain.handle('auth:get-state', () => authManager.getAuthState())
   ipcMain.handle('auth:login', () => authManager.login())
   ipcMain.handle('auth:logout', () => authManager.logout())
-  ipcMain.handle('auth:save-settings', (_event, settings) =>
-    authManager.saveSettings(settings),
-  )
   ipcMain.handle('directory:load', () => loadDirectoryData(authManager))
   ipcMain.handle('directory:get-photo', (_event, userId: string) =>
     getUserPhoto(authManager, userId),

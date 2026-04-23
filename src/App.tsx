@@ -1,17 +1,11 @@
 import { startTransition, useEffect, useState } from 'react'
 import { DirectoryTable } from './components/DirectoryTable'
-import type { AppSettings, AuthState, DirectoryPayload } from './shared/types'
+import type { AuthState, DirectoryPayload } from './shared/types'
 
 function App() {
   const [authState, setAuthState] = useState<AuthState | null>(null)
   const [payload, setPayload] = useState<DirectoryPayload | null>(null)
   const [loading, setLoading] = useState(true)
-  const [savingSettings, setSavingSettings] = useState(false)
-  const [showSettings, setShowSettings] = useState(false)
-  const [settingsForm, setSettingsForm] = useState<AppSettings>({
-    clientId: '',
-    tenantId: '',
-  })
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
@@ -34,7 +28,6 @@ function App() {
         }
 
         setAuthState(state)
-        setSettingsForm(state.settings)
 
         if (state.signedIn) {
           const nextPayload = await window.teamspy.directory.load()
@@ -91,26 +84,6 @@ function App() {
     })
   }
 
-  const handleSaveSettings = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
-
-    startTransition(async () => {
-      try {
-        setSavingSettings(true)
-        setError(null)
-
-        const nextState = await window.teamspy.auth.saveSettings(settingsForm)
-        setAuthState(nextState)
-        setPayload(null)
-        setShowSettings(false)
-      } catch (nextError) {
-        setError(nextError instanceof Error ? nextError.message : 'Could not save settings.')
-      } finally {
-        setSavingSettings(false)
-      }
-    })
-  }
-
   const handleRefresh = () => {
     startTransition(async () => {
       try {
@@ -148,111 +121,44 @@ function App() {
                 <strong>{account.name}</strong>
                 <small>{account.username}</small>
               </div>
-              <button
-                className="secondary-button"
-                onClick={() => setShowSettings((value) => !value)}
-                type="button"
-              >
-                Settings
-              </button>
               <button className="secondary-button" onClick={handleSignOut} type="button">
                 Sign out
               </button>
             </>
           ) : (
-            <>
-              <button
-                className="secondary-button"
-                onClick={() => setShowSettings((value) => !value)}
-                type="button"
-              >
-                Settings
-              </button>
-              <button
-                className="primary-button"
-                disabled={loading || authState?.configured === false}
-                onClick={handleSignIn}
-                type="button"
-              >
-                {loading ? 'Connecting…' : 'Connect Microsoft 365'}
-              </button>
-            </>
+            <button
+              className="primary-button"
+              disabled={loading || authState?.configured === false}
+              onClick={handleSignIn}
+              type="button"
+            >
+              {loading ? 'Connecting…' : 'Connect Microsoft 365'}
+            </button>
           )}
         </div>
       </header>
 
       {error ? <div className="error-banner">{error}</div> : null}
 
-      {authState?.configured === false || showSettings ? (
+      {authState?.configured === false ? (
         <section className="setup-card">
-          <p className="eyebrow">App settings</p>
-          <h2>Configure your Microsoft app registration</h2>
+          <p className="eyebrow">Publisher setup</p>
+          <h2>This build is missing a Microsoft client ID</h2>
           <p>
-            Enter the Microsoft Entra application ID and tenant ID directly in TeamSpy. These
-            values are stored in the app profile on this machine, so no manual env file is
-            required.
+            End users should not have to enter tenant IDs or app registration values. TeamSpy now
+            resolves the tenant from the Microsoft 365 sign-in and only needs a publisher-supplied
+            public client ID.
           </p>
-          <form className="settings-form" onSubmit={handleSaveSettings}>
-            <div className="settings-grid">
-              <label className="field">
-                <span>Client ID</span>
-                <input
-                  autoComplete="off"
-                  onChange={(event) =>
-                    setSettingsForm((current) => ({
-                      ...current,
-                      clientId: event.target.value,
-                    }))
-                  }
-                  placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
-                  type="text"
-                  value={settingsForm.clientId}
-                />
-              </label>
-              <label className="field">
-                <span>Tenant ID</span>
-                <input
-                  autoComplete="off"
-                  onChange={(event) =>
-                    setSettingsForm((current) => ({
-                      ...current,
-                      tenantId: event.target.value,
-                    }))
-                  }
-                  placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
-                  type="text"
-                  value={settingsForm.tenantId}
-                />
-              </label>
-            </div>
-            <div className="settings-tips">
-              <p>Authentication platform: Mobile and desktop applications</p>
-              <p>Redirect URI: <code>http://localhost</code></p>
-            </div>
-            <div className="form-actions">
-              <button className="primary-button" disabled={savingSettings} type="submit">
-                {savingSettings ? 'Saving…' : 'Save settings'}
-              </button>
-              {showSettings && authState?.configured ? (
-                <button
-                  className="secondary-button"
-                  onClick={() => setShowSettings(false)}
-                  type="button"
-                >
-                  Close
-                </button>
-              ) : null}
-            </div>
-          </form>
-          {authState?.missingSettings.length ? (
-            <p className="subtle">
-              Missing: {authState.missingSettings.join(', ')}
-            </p>
-          ) : (
-            <p className="subtle">
-              Changing these values clears the cached Microsoft session for this app.
-            </p>
-          )}
+          <div className="settings-tips">
+            <p>Authority: <code>https://login.microsoftonline.com/organizations</code></p>
+            <p>Redirect URI: <code>http://localhost</code></p>
+            <p>Missing: {authState.missingConfiguration.join(', ')}</p>
+          </div>
+          <p className="subtle">
+            To finish this build, set the public client ID in
+            <code> electron/publisher-config.ts</code> or provide
+            <code> TEAMSPY_CLIENT_ID</code> during development.
+          </p>
         </section>
       ) : null}
 

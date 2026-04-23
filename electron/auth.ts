@@ -11,9 +11,9 @@ import {
   type Configuration,
   type TokenCacheContext,
 } from '@azure/msal-node'
-import type { AppSettings, AuthAccount, AuthState } from '../src/shared/types'
+import type { AuthAccount, AuthState } from '../src/shared/types'
+import { AUTHORITY_TENANT, PUBLISHER_CLIENT_ID } from './publisher-config'
 
-const REQUIRED_SETTINGS: Array<keyof AppSettings> = ['clientId', 'tenantId']
 const REDIRECT_URI = 'http://localhost'
 
 export const GRAPH_SCOPES = [
@@ -49,43 +49,6 @@ class FileCachePlugin {
   }
 }
 
-function mapAccount(account: AccountInfo | null): AuthAccount | null {
-  if (!account) {
-    return null
-  }
-
-  return {
-    homeAccountId: account.homeAccountId,
-    name: account.name ?? account.username,
-    username: account.username,
-    tenantId: account.tenantId,
-  }
-}
-
-async function readJsonFile<T>(filePath: string, fallback: T) {
-  try {
-    const raw = await fs.readFile(filePath, 'utf8')
-    return JSON.parse(raw) as T
-  } catch (error) {
-    if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
-      return fallback
-    }
-
-    throw error
-  }
-}
-
-function sanitizeSettings(input: Partial<AppSettings> | null | undefined): AppSettings {
-  return {
-    clientId: input?.clientId?.trim() ?? '',
-    tenantId: input?.tenantId?.trim() ?? '',
-  }
-}
-
-function missingSettings(settings: AppSettings) {
-  return REQUIRED_SETTINGS.filter((key) => !settings[key])
-}
-
 function loadDesktopEnv() {
   const candidates = new Set([
     path.join(process.cwd(), '.env.local'),
@@ -101,56 +64,76 @@ function loadDesktopEnv() {
   }
 }
 
-export class AuthManager {
-  private clientApplication: PublicClientApplication | null = null
-  private settings: AppSettings = { clientId: '', tenantId: '' }
-  private readonly settingsPath = path.join(app.getPath('userData'), 'settings.json')
-  private readonly cachePath = path.join(app.getPath('userData'), 'msal-cache.json')
+function mapAccount(account: AccountInfo | null): AuthAccount | null {
+  if (!account) {
+    return null
+  }
 
-  async initialize() {
+  return {
+    homeAccountId: account.homeAccountId,
+    name: account.name ?? account.username,
+    username: account.username,
+    tenantId: account.tenantId,
+  }
+}
+
+function resolveClientId() {
+  return (
+    process.env.TEAMSPY_CLIENT_ID?.trim() ||
+    PUBLISHER_CLIENT_ID.trim() ||
+    ''
+  )
+}
+
+export class AuthManager {
+  private readonly clientApplication: PublicClientApplication | null
+  private readonly clientId: string
+  private readonly authority: string
+
+  constructor() {
     loadDesktopEnv()
 
-    const storedSettings = await readJsonFile<Partial<AppSettings>>(this.settingsPath, {})
-    const envSettings = sanitizeSettings({
-      clientId: process.env.TEAMSPY_CLIENT_ID,
-      tenantId: process.env.TEAMSPY_TENANT_ID,
-    })
+    this.clientId = resolveClientId()
+    this.authority = `https://login.microsoftonline.com/${AUTHORITY_TENANT}`
 
-    this.settings = sanitizeSettings({
-      ...storedSettings,
-      clientId: storedSettings.clientId || envSettings.clientId,
-      tenantId: storedSettings.tenantId || envSettings.tenantId,
-    })
+    if (!this.clientId) {
+      this.clientApplication = null
+      return
+    }
 
-    await this.configureClientApplication()
+    const config: Configuration = {
+      auth: {
+        clientId: this.clientId,
+        authority: this.authority,
+      },
+      cache: {
+        cachePlugin: new FileCachePlugin(
+          path.join(app.getPath('userData'), 'msal-cache.json'),
+        ),
+      },
+      system: {
+        loggerOptions: {
+          logLevel: LogLevel.Warning,
+          piiLoggingEnabled: false,
+          loggerCallback(_level, message) {
+            console.log(`[msal] ${message}`)
+          },
+        },
+      },
+    }
+
+    this.clientApplication = new PublicClientApplication(config)
   }
 
   getAuthState = async (): Promise<AuthState> => {
     const account = await this.getAccount()
 
     return {
-      configured: missingSettings(this.settings).length === 0,
+      configured: this.clientApplication !== null,
       signedIn: account !== null,
       account: mapAccount(account),
-      settings: this.settings,
-      missingSettings: missingSettings(this.settings),
+      missingConfiguration: this.clientId ? [] : ['clientId'],
     }
-  }
-
-  saveSettings = async (nextSettings: AppSettings): Promise<AuthState> => {
-    this.settings = sanitizeSettings(nextSettings)
-
-    await fs.mkdir(path.dirname(this.settingsPath), { recursive: true })
-    await fs.writeFile(
-      this.settingsPath,
-      JSON.stringify(this.settings, null, 2),
-      'utf8',
-    )
-
-    await fs.rm(this.cachePath, { force: true })
-    await this.configureClientApplication()
-
-    return this.getAuthState()
   }
 
   login = async (): Promise<AuthState> => {
@@ -201,38 +184,10 @@ export class AuthManager {
     await shell.openExternal(url)
   }
 
-  private async configureClientApplication() {
-    if (missingSettings(this.settings).length > 0) {
-      this.clientApplication = null
-      return
-    }
-
-    const config: Configuration = {
-      auth: {
-        clientId: this.settings.clientId,
-        authority: `https://login.microsoftonline.com/${this.settings.tenantId}`,
-      },
-      cache: {
-        cachePlugin: new FileCachePlugin(this.cachePath),
-      },
-      system: {
-        loggerOptions: {
-          logLevel: LogLevel.Warning,
-          piiLoggingEnabled: false,
-          loggerCallback(_level, message) {
-            console.log(`[msal] ${message}`)
-          },
-        },
-      },
-    }
-
-    this.clientApplication = new PublicClientApplication(config)
-  }
-
   private ensureConfigured() {
     if (!this.clientApplication) {
       throw new Error(
-        `Missing required settings: ${missingSettings(this.settings).join(', ')}`,
+        'This TeamSpy build is missing a publisher-configured Microsoft client ID.',
       )
     }
   }

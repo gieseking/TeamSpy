@@ -1,6 +1,5 @@
 import { contextBridge, ipcRenderer } from 'electron'
 import type {
-  AppSettings,
   AuthState,
   DirectoryPayload,
   TeamSpyDesktopApi,
@@ -12,8 +11,6 @@ const api: TeamSpyDesktopApi = {
     getState: () => ipcRenderer.invoke('auth:get-state') as Promise<AuthState>,
     login: () => ipcRenderer.invoke('auth:login') as Promise<AuthState>,
     logout: () => ipcRenderer.invoke('auth:logout') as Promise<AuthState>,
-    saveSettings: (settings: AppSettings) =>
-      ipcRenderer.invoke('auth:save-settings', settings) as Promise<AuthState>,
   },
   directory: {
     load: () =>

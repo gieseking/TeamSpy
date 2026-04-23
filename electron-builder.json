@@ -1,0 +1,15 @@
+{
+  "appId": "dev.gieseking.teamspy",
+  "productName": "TeamSpy",
+  "electronVersion": "41.3.0",
+  "directories": {
+    "output": "../release"
+  },
+  "mac": {
+    "category": "public.app-category.business",
+    "target": ["dmg", "zip"]
+  },
+  "win": {
+    "target": ["nsis", "portable", "zip"]
+  }
+}

@@ -47,21 +47,35 @@ Record:
 
 ## App Configuration
 
-TeamSpy no longer requires manual `.env` setup for normal use.
+TeamSpy no longer asks end users for tenant or app-registration settings.
 
-When the app starts, open **Settings** and enter:
+The authentication model is now:
 
-- your Microsoft Entra application (client) ID
-- your tenant ID
+- the app is built with a publisher-supplied Microsoft Entra public client ID
+- the tenant is resolved from the user's Microsoft 365 login via the `organizations` authority
 
-TeamSpy stores those values in its local app profile on the machine and uses them for future launches.
-
-Optional developer fallback:
+For development, you can still provide:
 
 - `.env.local`
 - `.env`
 
-Those are still supported if you want to preseed settings during development, but the intended user workflow is in-app configuration.
+using:
+
+```text
+TEAMSPY_CLIENT_ID=your-app-client-id
+```
+
+For distributed builds, set the value in:
+
+```text
+electron/publisher-config.ts
+```
+
+Required Entra setup:
+
+- Supported account types should allow the organizational accounts you want to sign in
+- Authentication platform: `Mobile and desktop applications`
+- Redirect URI: `http://localhost`
 
 ## Run It
 

@@ -14,31 +14,28 @@
     "typecheck": "tsc -b && tsc -p tsconfig.electron.json --noEmit",
     "build": "pnpm typecheck && pnpm build:electron && vite build",
     "build:electron": "esbuild electron/main.ts electron/preload.ts --bundle --platform=node --format=cjs --external:electron --outdir=dist-electron --out-extension:.js=.cjs",
+    "prepare:package": "node scripts/prepare-package.mjs",
     "lint": "eslint .",
     "preview": "vite preview",
-    "dist:dir": "pnpm build && electron-builder --dir",
-    "dist:mac": "pnpm build && electron-builder --mac dmg zip",
-    "dist:win": "pnpm build && electron-builder --win nsis portable zip"
+    "dist:dir": "pnpm build && pnpm prepare:package && electron-builder --projectDir bundle --config ../electron-builder.json --dir",
+    "dist:mac": "pnpm build && pnpm prepare:package && electron-builder --projectDir bundle --config ../electron-builder.json --mac dmg zip",
+    "dist:win": "pnpm build && pnpm prepare:package && electron-builder --projectDir bundle --config ../electron-builder.json --win nsis portable zip"
   },
-  "dependencies": {
+  "devDependencies": {
     "@azure/msal-node": "^5.1.4",
     "@dnd-kit/core": "^6.3.1",
     "@dnd-kit/sortable": "^10.0.0",
     "@dnd-kit/utilities": "^3.2.2",
+    "@eslint/js": "^9.39.4",
     "@microsoft/microsoft-graph-client": "^3.0.7",
     "@tanstack/react-table": "^8.21.3",
-    "dotenv": "^17.4.2",
-    "react": "^19.2.5",
-    "react-dom": "^19.2.5"
-  },
-  "devDependencies": {
-    "@eslint/js": "^9.39.4",
     "@types/node": "^24.12.2",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.1",
     "concurrently": "^9.2.1",
     "cross-env": "^10.1.0",
+    "dotenv": "^17.4.2",
     "electron": "^41.3.0",
     "electron-builder": "^26.8.1",
     "esbuild": "^0.28.0",
@@ -46,37 +43,12 @@
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.2",
     "globals": "^17.5.0",
+    "react": "^19.2.5",
+    "react-dom": "^19.2.5",
     "tsx": "^4.21.0",
     "typescript": "~6.0.2",
     "typescript-eslint": "^8.58.2",
     "vite": "^8.0.9",
     "wait-on": "^9.0.5"
-  },
-  "build": {
-    "appId": "dev.gieseking.teamspy",
-    "productName": "TeamSpy",
-    "files": [
-      "dist/**/*",
-      "dist-electron/**/*",
-      "package.json"
-    ],
-    "directories": {
-      "buildResources": "build",
-      "output": "release"
-    },
-    "mac": {
-      "category": "public.app-category.business",
-      "target": [
-        "dmg",
-        "zip"
-      ]
-    },
-    "win": {
-      "target": [
-        "nsis",
-        "portable",
-        "zip"
-      ]
-    }
   }
 }
