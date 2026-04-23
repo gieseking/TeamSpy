@@ -21,7 +21,7 @@ export function UserPhoto({ user }: { user: DirectoryUser }) {
 
     let active = true
 
-    window.teamspy.directory
+    window.friendlyfaces.directory
       .getPhoto(user.id)
       .then((dataUrl) => {
         photoCache.set(user.id, dataUrl)

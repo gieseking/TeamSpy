@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" role="img" aria-labelledby="title">
+  <title>FriendlyFaces smiling face icon</title>
+  <defs>
+    <linearGradient id="bg" x1="160" y1="96" x2="864" y2="928" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#2f80ed" />
+      <stop offset="0.5" stop-color="#34c6a3" />
+      <stop offset="1" stop-color="#7ee081" />
+    </linearGradient>
+    <linearGradient id="face" x1="320" y1="236" x2="708" y2="812" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#fff6cc" />
+      <stop offset="1" stop-color="#ffd368" />
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="24" stdDeviation="28" flood-color="#09305f" flood-opacity="0.22" />
+    </filter>
+  </defs>
+
+  <rect x="64" y="64" width="896" height="896" rx="224" fill="url(#bg)" />
+  <circle cx="512" cy="512" r="300" fill="url(#face)" filter="url(#shadow)" />
+  <circle cx="404" cy="438" r="34" fill="#143458" />
+  <circle cx="620" cy="438" r="34" fill="#143458" />
+  <path
+    d="M364 590c34 78 110 126 148 126s114-48 148-126"
+    fill="none"
+    stroke="#143458"
+    stroke-linecap="round"
+    stroke-width="44"
+  />
+  <path
+    d="M270 268c58-54 142-84 242-84 90 0 170 24 230 70"
+    fill="none"
+    opacity="0.18"
+    stroke="#ffffff"
+    stroke-linecap="round"
+    stroke-width="30"
+  />
+</svg>

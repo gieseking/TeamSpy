@@ -40,7 +40,7 @@ export interface DirectoryPayload {
   notes: string[]
 }
 
-export interface TeamSpyDesktopApi {
+export interface FriendlyFacesDesktopApi {
   auth: {
     getState: () => Promise<AuthState>
     login: () => Promise<AuthState>

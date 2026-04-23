@@ -97,7 +97,7 @@ function ActionButtons({ user }: { user: DirectoryUser }) {
         disabled={!canOpen}
         onClick={() => {
           if (user.email) {
-            void window.teamspy.teams.openAction('chat', user.email)
+            void window.friendlyfaces.teams.openAction('chat', user.email)
           }
         }}
         title={canOpen ? `Start a Teams chat with ${user.displayName}` : 'No email available'}
@@ -112,7 +112,7 @@ function ActionButtons({ user }: { user: DirectoryUser }) {
         disabled={!canOpen}
         onClick={() => {
           if (user.email) {
-            void window.teamspy.teams.openAction('call', user.email)
+            void window.friendlyfaces.teams.openAction('call', user.email)
           }
         }}
         title={canOpen ? `Start a Teams call with ${user.displayName}` : 'No email available'}
@@ -373,7 +373,7 @@ function StatsBar({ users }: { users: DirectoryUser[] }) {
 }
 
 function storageKey(accountId: string) {
-  return `teamspy:table-prefs:${accountId}`
+  return `friendlyfaces:table-prefs:${accountId}`
 }
 
 type StoredTablePrefs = {

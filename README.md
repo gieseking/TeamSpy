@@ -1,6 +1,6 @@
-# TeamSpy
+# FriendlyFaces
 
-TeamSpy is a standalone Electron desktop app for internal use on macOS and Windows. It signs in with Microsoft Entra, reads Microsoft Graph data locally, and shows a configurable Teams directory table with:
+FriendlyFaces is a standalone Electron desktop app for internal use on macOS and Windows. It signs in with Microsoft Entra, reads Microsoft Graph data locally, and shows a configurable Teams directory table with:
 
 - sortable headers
 - per-column filters
@@ -42,7 +42,7 @@ http://localhost
 
 ## App Configuration
 
-TeamSpy no longer asks end users for tenant or app-registration settings.
+FriendlyFaces no longer asks end users for tenant or app-registration settings.
 
 The authentication model is now:
 

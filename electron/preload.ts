@@ -2,11 +2,11 @@ import { contextBridge, ipcRenderer } from 'electron'
 import type {
   AuthState,
   DirectoryPayload,
-  TeamSpyDesktopApi,
+  FriendlyFacesDesktopApi,
   TeamsAction,
 } from '../src/shared/types'
 
-const api: TeamSpyDesktopApi = {
+const api: FriendlyFacesDesktopApi = {
   auth: {
     getState: () => ipcRenderer.invoke('auth:get-state') as Promise<AuthState>,
     login: () => ipcRenderer.invoke('auth:login') as Promise<AuthState>,
@@ -24,4 +24,4 @@ const api: TeamSpyDesktopApi = {
   },
 }
 
-contextBridge.exposeInMainWorld('teamspy', api)
+contextBridge.exposeInMainWorld('friendlyfaces', api)

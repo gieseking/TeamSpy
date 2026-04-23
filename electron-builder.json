@@ -1,15 +1,17 @@
 {
-  "appId": "dev.gieseking.teamspy",
-  "productName": "TeamSpy",
+  "appId": "dev.gieseking.friendlyfaces",
+  "productName": "FriendlyFaces",
   "electronVersion": "41.3.0",
   "directories": {
     "output": "../release"
   },
   "mac": {
+    "icon": "../build/icon.icns",
     "category": "public.app-category.business",
     "target": ["dmg", "zip"]
   },
   "win": {
+    "icon": "../build/icon.ico",
     "target": ["nsis", "portable", "zip"]
   }
 }

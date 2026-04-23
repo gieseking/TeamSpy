@@ -9,13 +9,13 @@ function App() {
   const [error, setError] = useState<string | null>(null)
 
   const loadDirectory = async () => {
-    const nextPayload = await window.teamspy.directory.load()
+    const nextPayload = await window.friendlyfaces.directory.load()
     setPayload(nextPayload)
     return nextPayload
   }
 
   const connectAndLoad = async () => {
-    const nextState = await window.teamspy.auth.login()
+    const nextState = await window.friendlyfaces.auth.login()
     setAuthState(nextState)
 
     if (nextState.signedIn) {
@@ -29,16 +29,16 @@ function App() {
     let active = true
 
     async function bootstrap() {
-      if (!window.teamspy) {
+      if (!window.friendlyfaces) {
         if (active) {
           setLoading(false)
-          setError('TeamSpy must be launched inside the desktop shell.')
+          setError('FriendlyFaces must be launched inside the desktop shell.')
         }
         return
       }
 
       try {
-        let state = await window.teamspy.auth.getState()
+        let state = await window.friendlyfaces.auth.getState()
 
         if (!active) {
           return
@@ -47,7 +47,7 @@ function App() {
         setAuthState(state)
 
         if (state.configured && !state.signedIn) {
-          state = await window.teamspy.auth.login()
+          state = await window.friendlyfaces.auth.login()
 
           if (!active) {
             return
@@ -57,7 +57,7 @@ function App() {
         }
 
         if (state.signedIn) {
-          const nextPayload = await window.teamspy.directory.load()
+          const nextPayload = await window.friendlyfaces.directory.load()
 
           if (!active) {
             return
@@ -102,7 +102,7 @@ function App() {
     startTransition(async () => {
       setLoading(true)
       setError(null)
-      const nextState = await window.teamspy.auth.logout()
+      const nextState = await window.friendlyfaces.auth.logout()
       setAuthState(nextState)
       setPayload(null)
       setLoading(false)
@@ -131,7 +131,7 @@ function App() {
       <header className="hero-card">
         <div className="hero-copy">
           <p className="eyebrow">Standalone desktop app</p>
-          <h1>TeamSpy</h1>
+          <h1>FriendlyFaces</h1>
           <p className="lede">
             A local Microsoft Teams directory for macOS and Windows with live presence, sortable
             columns, draggable table layout, and one-click Teams actions.
@@ -169,7 +169,7 @@ function App() {
           <p className="eyebrow">Publisher setup</p>
           <h2>This build is missing a Microsoft client ID</h2>
           <p>
-            End users should not have to enter tenant IDs or app registration values. TeamSpy now
+            End users should not have to enter tenant IDs or app registration values. FriendlyFaces now
             resolves the tenant from the Microsoft 365 sign-in and only needs a publisher-supplied
             public client ID.
           </p>
@@ -189,7 +189,7 @@ function App() {
         <section className="empty-card">
           <h2>Sign in to continue</h2>
           <p>
-            TeamSpy starts by opening Microsoft 365 authentication inside the app. If you closed
+            FriendlyFaces starts by opening Microsoft 365 authentication inside the app. If you closed
             that dialog, use the button above to reconnect and continue to the grid.
           </p>
         </section>

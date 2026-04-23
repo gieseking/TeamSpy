@@ -170,7 +170,7 @@ export class AuthManager {
   private ensureConfigured() {
     if (!this.clientApplication) {
       throw new Error(
-        'This TeamSpy build is missing a publisher-configured Microsoft client ID.',
+        'This FriendlyFaces build is missing a publisher-configured Microsoft client ID.',
       )
     }
   }
@@ -196,9 +196,9 @@ export class AuthManager {
           await this.authWindowController.open(url)
         },
         successTemplate:
-          '<h1>TeamSpy connected.</h1><p>You can close this window and return to the app.</p>',
+          '<h1>FriendlyFaces connected.</h1><p>You can close this window and return to the app.</p>',
         errorTemplate:
-          '<h1>TeamSpy could not complete sign-in.</h1><p>Return to the app for the error details.</p>',
+          '<h1>FriendlyFaces could not complete sign-in.</h1><p>Return to the app for the error details.</p>',
       })
     } finally {
       this.authWindowController.close()

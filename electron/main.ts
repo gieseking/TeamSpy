@@ -43,7 +43,7 @@ async function createWindow() {
     height: 980,
     minWidth: 1180,
     minHeight: 720,
-    title: 'TeamSpy',
+    title: 'FriendlyFaces',
     ...(isMac ? { titleBarStyle: 'hiddenInset' as const } : {}),
     autoHideMenuBar: !isMac,
     backgroundColor: '#e9eef6',
@@ -128,7 +128,7 @@ function closeAuthWindow() {
 }
 
 app.whenReady().then(async () => {
-  app.setName('TeamSpy')
+  app.setName('FriendlyFaces')
   authManager = new AuthManager({
     open: openAuthWindow,
     close: closeAuthWindow,

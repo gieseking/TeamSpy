@@ -1,10 +1,10 @@
 /// <reference types="vite/client" />
 
-import type { TeamSpyDesktopApi } from './shared/types'
+import type { FriendlyFacesDesktopApi } from './shared/types'
 
 declare global {
   interface Window {
-    teamspy: TeamSpyDesktopApi
+    friendlyfaces: FriendlyFacesDesktopApi
   }
 }
 
