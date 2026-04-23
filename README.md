@@ -45,34 +45,23 @@ Record:
 - Application (client) ID
 - Directory (tenant) ID
 
-## Local Configuration
+## App Configuration
 
-For development, create `.env` in the repo root:
+TeamSpy no longer requires manual `.env` setup for normal use.
 
-```bash
-cp .env.example .env
-```
+When the app starts, open **Settings** and enter:
 
-Then fill in:
+- your Microsoft Entra application (client) ID
+- your tenant ID
 
-```text
-TEAMSPY_CLIENT_ID=your-app-client-id
-TEAMSPY_TENANT_ID=your-tenant-id
-```
+TeamSpy stores those values in its local app profile on the machine and uses them for future launches.
 
-For a packaged app, TeamSpy also reads:
+Optional developer fallback:
 
-```text
-~/Library/Application Support/TeamSpy/.env
-```
+- `.env.local`
+- `.env`
 
-On Windows, use:
-
-```text
-%APPDATA%\TeamSpy\.env
-```
-
-That lets the desktop app stay standalone without requiring hosted secrets or a backend server.
+Those are still supported if you want to preseed settings during development, but the intended user workflow is in-app configuration.
 
 ## Run It
 

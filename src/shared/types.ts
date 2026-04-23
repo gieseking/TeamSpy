@@ -1,5 +1,10 @@
 export type TeamsAction = 'chat' | 'call'
 
+export interface AppSettings {
+  clientId: string
+  tenantId: string
+}
+
 export interface AuthAccount {
   homeAccountId: string
   name: string
@@ -11,7 +16,8 @@ export interface AuthState {
   configured: boolean
   signedIn: boolean
   account: AuthAccount | null
-  missingEnv: string[]
+  settings: AppSettings
+  missingSettings: string[]
 }
 
 export interface DirectoryUser {
@@ -45,6 +51,7 @@ export interface TeamSpyDesktopApi {
     getState: () => Promise<AuthState>
     login: () => Promise<AuthState>
     logout: () => Promise<AuthState>
+    saveSettings: (settings: AppSettings) => Promise<AuthState>
   }
   directory: {
     load: () => Promise<DirectoryPayload>
