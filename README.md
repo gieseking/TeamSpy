@@ -18,10 +18,10 @@ TeamSpy is a standalone Electron desktop app for internal use on macOS and Windo
 
 ## Microsoft Entra Setup
 
-Create a **single-tenant** app registration in Microsoft Entra ID.
+Create a Microsoft Entra app registration for desktop sign-in.
 
 1. Register a new application.
-2. Set supported account types to `Accounts in this organizational directory only`.
+2. Set supported account types to match the organizations allowed to sign in.
 3. Under `Authentication`, add the platform `Mobile and desktop applications`.
 4. Add this redirect URI:
 
@@ -40,11 +40,6 @@ http://localhost
 
 6. Grant admin consent for the tenant.
 
-Record:
-
-- Application (client) ID
-- Directory (tenant) ID
-
 ## App Configuration
 
 TeamSpy no longer asks end users for tenant or app-registration settings.
@@ -53,17 +48,6 @@ The authentication model is now:
 
 - the app is built with a publisher-supplied Microsoft Entra public client ID
 - the tenant is resolved from the user's Microsoft 365 login via the `organizations` authority
-
-For development, you can still provide:
-
-- `.env.local`
-- `.env`
-
-using:
-
-```text
-TEAMSPY_CLIENT_ID=your-app-client-id
-```
 
 For distributed builds, set the value in:
 

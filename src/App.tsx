@@ -8,6 +8,23 @@ function App() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
+  const loadDirectory = async () => {
+    const nextPayload = await window.teamspy.directory.load()
+    setPayload(nextPayload)
+    return nextPayload
+  }
+
+  const connectAndLoad = async () => {
+    const nextState = await window.teamspy.auth.login()
+    setAuthState(nextState)
+
+    if (nextState.signedIn) {
+      await loadDirectory()
+    }
+
+    return nextState
+  }
+
   useEffect(() => {
     let active = true
 
@@ -21,7 +38,7 @@ function App() {
       }
 
       try {
-        const state = await window.teamspy.auth.getState()
+        let state = await window.teamspy.auth.getState()
 
         if (!active) {
           return
@@ -29,14 +46,28 @@ function App() {
 
         setAuthState(state)
 
+        if (state.configured && !state.signedIn) {
+          state = await window.teamspy.auth.login()
+
+          if (!active) {
+            return
+          }
+
+          setAuthState(state)
+        }
+
         if (state.signedIn) {
           const nextPayload = await window.teamspy.directory.load()
-          if (active) {
-            setPayload(nextPayload)
+
+          if (!active) {
+            return
           }
+
+          setPayload(nextPayload)
         }
       } catch (nextError) {
         if (active) {
+          setPayload(null)
           setError(nextError instanceof Error ? nextError.message : 'Unknown error')
         }
       } finally {
@@ -58,13 +89,7 @@ function App() {
       try {
         setLoading(true)
         setError(null)
-        const nextState = await window.teamspy.auth.login()
-        setAuthState(nextState)
-
-        if (nextState.signedIn) {
-          const nextPayload = await window.teamspy.directory.load()
-          setPayload(nextPayload)
-        }
+        await connectAndLoad()
       } catch (nextError) {
         setError(nextError instanceof Error ? nextError.message : 'Sign-in failed.')
       } finally {
@@ -89,8 +114,7 @@ function App() {
       try {
         setLoading(true)
         setError(null)
-        const nextPayload = await window.teamspy.directory.load()
-        setPayload(nextPayload)
+        await loadDirectory()
       } catch (nextError) {
         setError(nextError instanceof Error ? nextError.message : 'Refresh failed.')
       } finally {
@@ -156,18 +180,17 @@ function App() {
           </div>
           <p className="subtle">
             To finish this build, set the public client ID in
-            <code> electron/publisher-config.ts</code> or provide
-            <code> TEAMSPY_CLIENT_ID</code> during development.
+            <code> electron/publisher-config.ts</code>.
           </p>
         </section>
       ) : null}
 
       {authState?.configured && !authState.signedIn && !loading ? (
         <section className="empty-card">
-          <h2>Sign in to load your Teams directory</h2>
+          <h2>Sign in to continue</h2>
           <p>
-            TeamSpy runs locally on your Mac. The sign-in flow opens Microsoft in your browser and
-            returns to the app with cached tokens.
+            TeamSpy starts by opening Microsoft 365 authentication inside the app. If you closed
+            that dialog, use the button above to reconnect and continue to the grid.
           </p>
         </section>
       ) : null}

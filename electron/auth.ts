@@ -1,7 +1,6 @@
 import { promises as fs } from 'node:fs'
 import path from 'node:path'
 import { app, shell } from 'electron'
-import dotenv from 'dotenv'
 import {
   InteractionRequiredAuthError,
   LogLevel,
@@ -22,6 +21,11 @@ export const GRAPH_SCOPES = [
   'MailboxSettings.Read',
   'AuditLog.Read.All',
 ] as const
+
+type AuthWindowController = {
+  close: () => void
+  open: (url: string) => Promise<void>
+}
 
 class FileCachePlugin {
   constructor(private readonly cachePath: string) {}
@@ -47,21 +51,6 @@ class FileCachePlugin {
   }
 }
 
-function loadDesktopEnv() {
-  const candidates = new Set([
-    path.join(process.cwd(), '.env.local'),
-    path.join(process.cwd(), '.env'),
-    path.join(app.getPath('userData'), '.env'),
-  ])
-
-  for (const candidate of candidates) {
-    dotenv.config({
-      path: candidate,
-      override: false,
-    })
-  }
-}
-
 function mapAccount(account: AccountInfo | null): AuthAccount | null {
   if (!account) {
     return null
@@ -76,23 +65,19 @@ function mapAccount(account: AccountInfo | null): AuthAccount | null {
 }
 
 function resolveClientId() {
-  return (
-    process.env.TEAMSPY_CLIENT_ID?.trim() ||
-    PUBLISHER_CLIENT_ID.trim() ||
-    ''
-  )
+  return PUBLISHER_CLIENT_ID.trim()
 }
 
 export class AuthManager {
   private readonly clientApplication: PublicClientApplication | null
   private readonly clientId: string
   private readonly authority: string
+  private readonly authWindowController: AuthWindowController
 
-  constructor() {
-    loadDesktopEnv()
-
+  constructor(authWindowController: AuthWindowController) {
     this.clientId = resolveClientId()
     this.authority = `https://login.microsoftonline.com/${AUTHORITY_TENANT}`
+    this.authWindowController = authWindowController
 
     if (!this.clientId) {
       this.clientApplication = null
@@ -204,15 +189,19 @@ export class AuthManager {
   ): Promise<AuthenticationResult> => {
     this.ensureConfigured()
 
-    return this.clientApplication!.acquireTokenInteractive({
-      scopes,
-      openBrowser: async (url) => {
-        await shell.openExternal(url)
-      },
-      successTemplate:
-        '<h1>TeamSpy connected.</h1><p>You can close this window and return to the app.</p>',
-      errorTemplate:
-        '<h1>TeamSpy could not complete sign-in.</h1><p>Return to the app for the error details.</p>',
-    })
+    try {
+      return await this.clientApplication!.acquireTokenInteractive({
+        scopes,
+        openBrowser: async (url) => {
+          await this.authWindowController.open(url)
+        },
+        successTemplate:
+          '<h1>TeamSpy connected.</h1><p>You can close this window and return to the app.</p>',
+        errorTemplate:
+          '<h1>TeamSpy could not complete sign-in.</h1><p>Return to the app for the error details.</p>',
+      })
+    } finally {
+      this.authWindowController.close()
+    }
   }
 }

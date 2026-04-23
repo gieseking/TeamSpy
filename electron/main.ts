@@ -1,10 +1,11 @@
 import path from 'node:path'
-import { app, BrowserWindow, ipcMain } from 'electron'
+import { app, BrowserWindow, ipcMain, shell } from 'electron'
 import { AuthManager } from './auth'
 import { getUserPhoto, loadDirectoryData } from './graph'
 import type { TeamsAction } from '../src/shared/types'
 
 let mainWindow: BrowserWindow | null = null
+let authWindow: BrowserWindow | null = null
 let authManager: AuthManager
 
 function getRendererEntry() {
@@ -64,9 +65,74 @@ async function createWindow() {
   }
 }
 
+async function openAuthWindow(url: string) {
+  if (authWindow && !authWindow.isDestroyed()) {
+    await authWindow.loadURL(url)
+    authWindow.focus()
+    return
+  }
+
+  authWindow = new BrowserWindow({
+    width: 540,
+    height: 760,
+    minWidth: 460,
+    minHeight: 620,
+    title: 'Connect Microsoft 365',
+    parent: mainWindow ?? undefined,
+    modal: Boolean(mainWindow),
+    autoHideMenuBar: true,
+    backgroundColor: '#f5f8fc',
+    webPreferences: {
+      contextIsolation: true,
+      nodeIntegration: false,
+      sandbox: true,
+    },
+  })
+
+  authWindow.on('closed', () => {
+    authWindow = null
+  })
+
+  authWindow.webContents.setWindowOpenHandler(({ url: targetUrl }) => {
+    void authWindow?.loadURL(targetUrl)
+    return { action: 'deny' }
+  })
+
+  authWindow.webContents.on('will-navigate', (event, targetUrl) => {
+    if (targetUrl.startsWith('https://teams.microsoft.com/')) {
+      event.preventDefault()
+      void shell.openExternal(targetUrl)
+    }
+  })
+
+  authWindow.webContents.on(
+    'did-fail-load',
+    (_event, errorCode, _errorDescription, validatedUrl) => {
+      if (errorCode === -3 || validatedUrl.startsWith('http://localhost')) {
+        return
+      }
+    },
+  )
+
+  await authWindow.loadURL(url)
+}
+
+function closeAuthWindow() {
+  if (!authWindow || authWindow.isDestroyed()) {
+    authWindow = null
+    return
+  }
+
+  authWindow.close()
+  authWindow = null
+}
+
 app.whenReady().then(async () => {
   app.setName('TeamSpy')
-  authManager = new AuthManager()
+  authManager = new AuthManager({
+    open: openAuthWindow,
+    close: closeAuthWindow,
+  })
 
   ipcMain.handle('auth:get-state', () => authManager.getAuthState())
   ipcMain.handle('auth:login', () => authManager.login())

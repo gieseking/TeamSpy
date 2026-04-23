@@ -376,6 +376,13 @@ function storageKey(accountId: string) {
   return `teamspy:table-prefs:${accountId}`
 }
 
+type StoredTablePrefs = {
+  columnFilters?: ColumnFiltersState
+  columnOrder?: string[]
+  columnVisibility?: VisibilityState
+  sorting?: SortingState
+}
+
 export function DirectoryTable({
   payload,
   loading,
@@ -399,20 +406,23 @@ export function DirectoryTable({
     const raw = localStorage.getItem(storageKey(accountId))
 
     if (!raw) {
+      setSorting([{ id: 'displayName', desc: false }])
+      setColumnFilters([])
       setColumnOrder(DEFAULT_COLUMN_ORDER)
       setColumnVisibility(DEFAULT_VISIBILITY)
       return
     }
 
     try {
-      const parsed = JSON.parse(raw) as {
-        columnOrder?: string[]
-        columnVisibility?: VisibilityState
-      }
+      const parsed = JSON.parse(raw) as StoredTablePrefs
 
+      setSorting(parsed.sorting ?? [{ id: 'displayName', desc: false }])
+      setColumnFilters(parsed.columnFilters ?? [])
       setColumnOrder(parsed.columnOrder ?? DEFAULT_COLUMN_ORDER)
       setColumnVisibility(parsed.columnVisibility ?? DEFAULT_VISIBILITY)
     } catch {
+      setSorting([{ id: 'displayName', desc: false }])
+      setColumnFilters([])
       setColumnOrder(DEFAULT_COLUMN_ORDER)
       setColumnVisibility(DEFAULT_VISIBILITY)
     }
@@ -421,9 +431,14 @@ export function DirectoryTable({
   useEffect(() => {
     localStorage.setItem(
       storageKey(accountId),
-      JSON.stringify({ columnOrder, columnVisibility }),
+      JSON.stringify({
+        sorting,
+        columnFilters,
+        columnOrder,
+        columnVisibility,
+      } satisfies StoredTablePrefs),
     )
-  }, [accountId, columnOrder, columnVisibility])
+  }, [accountId, columnFilters, columnOrder, columnVisibility, sorting])
 
   const table = useReactTable({
     data: payload.users,
