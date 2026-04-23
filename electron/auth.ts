@@ -14,8 +14,6 @@ import {
 import type { AuthAccount, AuthState } from '../src/shared/types'
 import { AUTHORITY_TENANT, PUBLISHER_CLIENT_ID } from './publisher-config'
 
-const REDIRECT_URI = 'http://localhost'
-
 export const GRAPH_SCOPES = [
   'User.Read',
   'User.Read.All',
@@ -208,7 +206,6 @@ export class AuthManager {
 
     return this.clientApplication!.acquireTokenInteractive({
       scopes,
-      redirectUri: REDIRECT_URI,
       openBrowser: async (url) => {
         await shell.openExternal(url)
       },
